@@ -39,6 +39,7 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  /** 展示类型 amount 金额 date 日期 datetime 日期时间 file 文件 text 文本 dict 标签 dictLabel 字典label值  */
   type: {
     type: String as () => ItemType,
     default: 'text',
@@ -58,6 +59,10 @@ const props = defineProps({
   previewType: {
     type: String as () => 'image' | 'link',
     default: 'image',
+  },
+  emptyText: {
+    type: String,
+    default: '--',
   },
 });
 
@@ -166,45 +171,53 @@ onMounted(() => {
     </div>
     <div class="value">
       <template v-if="!$slots.default">
-        <template v-if="type === 'text'">
-          {{ valueData }}
-          <Copy v-if="copy" class="copy-icon" :size="14" @click="handleCopy" />
-        </template>
-        <template v-else-if="type === 'dict'">
-          <DictTag :type="props.dictType" :value="valueData" />
-        </template>
-        <template v-else-if="type === 'dictLabel'">
-          {{ getDictLabel(props.dictType, valueData) || '' }}
-        </template>
-        <template v-else-if="type === 'file'">
-          <view
-            v-if="isImage(fileData.fileType) && props.previewType === 'image'"
-            class="image-preview"
-            @click="handlePreview"
-          >
-            <view class="preview-mask"> <EyeIcon :size="14" />预览 </view>
-            <a-image
-              class="preview-image"
-              :src="getImageUrls()[0]"
-              :preview="false"
+        <template v-if="valueData || fileData.fileUrl">
+          <template v-if="type === 'text'">
+            {{ valueData }}
+            <Copy
+              v-if="copy"
+              class="copy-icon"
+              :size="14"
+              @click="handleCopy"
             />
-          </view>
-          <a-button
-            v-else-if="
-              isFile(fileData.fileType) || props.previewType === 'link'
-            "
-            type="link"
-            @click="handlePreview"
-          >
-            {{ fileData.fileName }}.{{ fileData.fileType }}
-          </a-button>
+          </template>
+          <template v-else-if="type === 'dict'">
+            <DictTag :type="props.dictType" :value="valueData" />
+          </template>
+          <template v-else-if="type === 'dictLabel'">
+            {{ getDictLabel(props.dictType, valueData) }}
+          </template>
+          <template v-else-if="type === 'file'">
+            <view
+              v-if="isImage(fileData.fileType) && props.previewType === 'image'"
+              class="image-preview"
+              @click="handlePreview"
+            >
+              <view class="preview-mask"> <EyeIcon :size="14" />预览 </view>
+              <a-image
+                class="preview-image"
+                :src="getImageUrls()[0]"
+                :preview="false"
+              />
+            </view>
+            <a-button
+              v-else-if="
+                isFile(fileData.fileType) || props.previewType === 'link'
+              "
+              type="link"
+              @click="handlePreview"
+            >
+              {{ fileData.fileName }}.{{ fileData.fileType }}
+            </a-button>
+          </template>
+          <template v-else-if="type === 'amount'">
+            <span class="amount-text">{{ valueData }}</span>
+          </template>
+          <template v-if="props.suffix">
+            <span class="value-suffix">{{ props.suffix }}</span>
+          </template>
         </template>
-        <template v-else-if="type === 'amount'">
-          <span class="amount-text">{{ valueData }}</span>
-        </template>
-        <template v-if="props.suffix">
-          <span class="value-suffix">{{ props.suffix }}</span>
-        </template>
+        <span v-else>{{ emptyText }}</span>
       </template>
       <slot></slot>
     </div>
